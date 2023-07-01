@@ -1,14 +1,14 @@
 import chromium from "@sparticuz/chromium-min";
 import puppeteer from "puppeteer-core";
+import type { Handler, CloudFrontRequestEvent } from "aws-lambda";
 
 const dynamicRenderHeaderName = "x-need-dynamic-render";
 const originUrl = "https://dynamic-rendering.kiyoshiro.ml";
 
 /**
  * 該当するキャッシュがなく、オリジンにリクエストする前に実行される
- * @type {import('aws-lambda').Handler<import('aws-lambda').CloudFrontRequestEvent>}
  */
-export const handler = async (event, context) => {
+export const handler: Handler<CloudFrontRequestEvent> = async (event) => {
   const request = event.Records[0].cf.request;
   const headers = request.headers;
 
@@ -20,7 +20,8 @@ export const handler = async (event, context) => {
     defaultViewport: chromium.defaultViewport,
     // https://github.com/Sparticuz/chromium/blob/74283507ac24bf17bf306bc4765b94bb48a225b3/examples/remote-min-binary/index.js#L9-L10
     executablePath: await chromium.executablePath(
-      "https://github.com/Sparticuz/chromium/releases/download/v114.0.0/chromium-v114.0.0-pack.tar"
+      // @sparticuz/chromium-minとバージョンを一致させること
+      "https://github.com/Sparticuz/chromium/releases/download/v112.0.0/chromium-v112.0.0-pack.tar"
     ),
     headless: chromium.headless,
     ignoreHTTPSErrors: true,

@@ -1,3 +1,5 @@
+import type { Handler, CloudFrontRequestEvent } from "aws-lambda";
+
 const crawlers = [
   "Googlebot",
   "facebookexternalhit",
@@ -10,9 +12,8 @@ const dynamicRenderHeaderName = "x-need-dynamic-render";
 
 /**
  * キャッシュの有無に関係なく、リクエストされた際に実行される
- * @type {import('aws-lambda').Handler<import('aws-lambda').CloudFrontRequestEvent>}
  */
-export const handler = async (event, context) => {
+export const handler = async (event) => {
   const request = event.Records[0].cf.request;
   const headers = request.headers;
 

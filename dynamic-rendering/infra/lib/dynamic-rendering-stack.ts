@@ -4,8 +4,9 @@ import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as logs from "aws-cdk-lib/aws-logs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
@@ -84,28 +85,20 @@ export class StaticSite extends Construct {
     new CfnOutput(this, "Certificate", { value: certificate.certificateArn });
 
     // DynamicRender Lambda
-    const viewerRequestLambda = new cloudfront.experimental.EdgeFunction(
-      this,
-      "ViewerRequest",
-      {
-        code: lambda.Code.fromAsset("../lambda/viewer-request"),
-        handler: "index.handler",
-        runtime: lambda.Runtime.NODEJS_18_X,
-        logRetention: logs.RetentionDays.ONE_WEEK,
-      }
-    );
-    const originRequestLambda = new cloudfront.experimental.EdgeFunction(
-      this,
-      "OriginRequest",
-      {
-        code: lambda.Code.fromAsset("../lambda/origin-request"),
-        handler: "index.handler",
-        runtime: lambda.Runtime.NODEJS_18_X,
-        memorySize: 4096,
-        timeout: Duration.seconds(30),
-        logRetention: logs.RetentionDays.ONE_WEEK,
-      }
-    );
+    const viewerRequestLambda = new NodejsFunction(this, "ViewerRequest", {
+      entry: "../lambda/viewer-request/index.ts",
+      handler: "handler",
+      runtime: lambda.Runtime.NODEJS_18_X,
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    });
+    const originRequestLambda = new NodejsFunction(this, "OriginRequest", {
+      entry: "../lambda/origin-request/index.ts",
+      handler: "handler",
+      runtime: lambda.Runtime.NODEJS_18_X,
+      memorySize: 4096,
+      timeout: Duration.seconds(30),
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    });
 
     // CloudFront distribution
     const distribution = new cloudfront.Distribution(this, "SiteDistribution", {
