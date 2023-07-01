@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-import * as route53 from "aws-cdk-lib/aws-route53";
-import * as s3 from "aws-cdk-lib/aws-s3";
+import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
-import * as targets from "aws-cdk-lib/aws-route53-targets";
 import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
-import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as logs from "aws-cdk-lib/aws-logs";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as targets from "aws-cdk-lib/aws-route53-targets";
+import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
 
 export interface StaticSiteProps {
@@ -81,27 +83,63 @@ export class StaticSite extends Construct {
 
     new CfnOutput(this, "Certificate", { value: certificate.certificateArn });
 
+    // DynamicRender Lambda
+    const viewerRequestLambda = new cloudfront.experimental.EdgeFunction(
+      this,
+      "ViewerRequest",
+      {
+        code: lambda.Code.fromAsset("../lambda/viewer-request"),
+        handler: "index.handler",
+        runtime: lambda.Runtime.NODEJS_18_X,
+        logRetention: logs.RetentionDays.ONE_WEEK,
+      }
+    );
+    const originRequestLambda = new cloudfront.experimental.EdgeFunction(
+      this,
+      "OriginRequest",
+      {
+        code: lambda.Code.fromAsset("../lambda/origin-request"),
+        handler: "index.handler",
+        runtime: lambda.Runtime.NODEJS_18_X,
+        memorySize: 4096,
+        timeout: Duration.seconds(30),
+        logRetention: logs.RetentionDays.ONE_WEEK,
+      }
+    );
+
     // CloudFront distribution
     const distribution = new cloudfront.Distribution(this, "SiteDistribution", {
       certificate: certificate,
       defaultRootObject: "index.html",
       domainNames: [siteDomain],
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
-      errorResponses: [
-        {
-          httpStatus: 403,
-          responseHttpStatus: 403,
-          responsePagePath: "/error.html",
-          ttl: Duration.minutes(30),
-        },
-      ],
       defaultBehavior: {
         origin: new cloudfront_origins.S3Origin(siteBucket, {
           originAccessIdentity: cloudfrontOAI,
         }),
         compress: true,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachePolicy: new cloudfront.CachePolicy(this, "CachePolicy", {
+          enableAcceptEncodingBrotli: true,
+          enableAcceptEncodingGzip: true,
+          headerBehavior: cloudfront.CacheHeaderBehavior.allowList(
+            // Lambda@Edge Origin Requestはキャッシュにヒットしなかったときのみ呼ばれる。そのため、x-need-dynamic-renderの有無によってキャッシュを分離する必要がある
+            "x-need-dynamic-render"
+          ),
+        }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        responseHeadersPolicy:
+          cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
+        edgeLambdas: [
+          {
+            eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
+            functionVersion: viewerRequestLambda.currentVersion,
+          },
+          {
+            eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
+            functionVersion: originRequestLambda.currentVersion,
+          },
+        ],
       },
     });
 

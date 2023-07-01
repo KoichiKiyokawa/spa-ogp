@@ -15,11 +15,9 @@
     ]
   },
   "context": {
-    "context": {
-      "domain": "kiyoshiro.ml",
-      "subdomain": "dynamic-rendering",
-      "accountId": "877131159332"
-    },
+    "domain": "kiyoshiro.ml",
+    "subdomain": "dynamic-rendering",
+    "accountId": "877131159332",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],

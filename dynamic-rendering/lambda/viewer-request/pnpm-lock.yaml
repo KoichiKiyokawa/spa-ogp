@@ -1,0 +1,25 @@
+lockfileVersion: '6.1'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+devDependencies:
+  '@types/aws-lambda':
+    specifier: 8.10.119
+    version: 8.10.119
+  typescript:
+    specifier: 5.1.6
+    version: 5.1.6
+
+packages:
+
+  /@types/aws-lambda@8.10.119:
+    resolution: {integrity: sha512-Vqm22aZrCvCd6I5g1SvpW151jfqwTzEZ7XJ3yZ6xaZG31nUEOEyzzVImjRcsN8Wi/QyPxId/x8GTtgIbsy8kEw==}
+    dev: true
+
+  /typescript@5.1.6:
+    resolution: {integrity: sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true
