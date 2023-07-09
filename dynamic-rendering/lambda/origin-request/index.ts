@@ -40,7 +40,7 @@ export const handler: Handler<CloudFrontRequestEvent> = async (event) => {
       "cache-control": [
         {
           key: "Cache-Control",
-          value: "max-age=100",
+          value: "max-age=100, stale-while-revalidate=86400",
         },
       ],
       "content-type": [

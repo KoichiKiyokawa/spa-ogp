@@ -13,7 +13,7 @@ const dynamicRenderHeaderName = "x-need-dynamic-render";
 /**
  * キャッシュの有無に関係なく、リクエストされた際に実行される
  */
-export const handler = async (event) => {
+export const handler: Handler<CloudFrontRequestEvent> = async (event) => {
   const request = event.Records[0].cf.request;
   const headers = request.headers;
 
