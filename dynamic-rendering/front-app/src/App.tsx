@@ -5,6 +5,9 @@ import viteLogo from "/vite.svg";
 
 export const Component: FC = () => {
   const [count, setCount] = useState(0);
+  const jstNow = new Date(
+    Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
+  );
 
   return (
     <>
@@ -16,7 +19,7 @@ export const Component: FC = () => {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React {new Date().toISOString()}</h1>
+      <h1>Vite + React {jstNow.toLocaleString()}</h1>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
