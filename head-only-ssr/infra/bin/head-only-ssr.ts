@@ -12,18 +12,17 @@ const siteDomain = [subDomain, domainName].join(".")
 
 const account = app.node.tryGetContext("accountId")
 
-const globalStack = new GlobalStack(app, "HeadOnlySsrGlobalStack", {
-  domainName,
+const tokyoStack = new TokyoStack(app, "HeadOnlySsrTokyoStack", {
   siteDomain,
-  env: { region: "us-east-1", account },
+  env: { region: "ap-northeast-1", account },
   crossRegionReferences: true,
 })
 
-new TokyoStack(app, "HeadOnlySsrTokyoStack", {
+new GlobalStack(app, "HeadOnlySsrGlobalStack", {
+  domainName,
   siteDomain,
-  zone: globalStack.zone,
-  certificate: globalStack.certificate,
-  originResponseFunction: globalStack.originResponseFunction,
-  env: { region: "ap-northeast-1", account },
+  siteBucket: tokyoStack.siteBucket,
+  cloudfrontOAI: tokyoStack.cloudfrontOAI,
+  env: { region: "us-east-1", account },
   crossRegionReferences: true,
 })

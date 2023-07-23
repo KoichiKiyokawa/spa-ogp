@@ -17,14 +17,14 @@ import { Construct } from "constructs"
 
 export type TokyoStackProps = {
   siteDomain: string
-  zone: aws_route53.IHostedZone
-  certificate: aws_certificatemanager.ICertificate
-  originResponseFunction: aws_lambda_nodejs.NodejsFunction
 } & StackProps
 
 // cf) https://github.com/aws-samples/aws-cdk-examples/blob/master/typescript/static-site/static-site.ts
 // Only S3 will be specially created in the Tokyo region
 export class TokyoStack extends Stack {
+  siteBucket: aws_s3.Bucket
+  cloudfrontOAI: aws_cloudfront.OriginAccessIdentity
+
   constructor(parent: Construct, name: string, props: TokyoStackProps) {
     super(parent, name, props)
 
@@ -35,7 +35,7 @@ export class TokyoStack extends Stack {
     new CfnOutput(this, "Site", { value: "https://" + props.siteDomain })
 
     // Content bucket
-    const siteBucket = new aws_s3.Bucket(this, "SiteBucket", {
+    this.siteBucket = new aws_s3.Bucket(this, "SiteBucket", {
       bucketName: props.siteDomain,
       publicReadAccess: false,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
@@ -54,13 +54,13 @@ export class TokyoStack extends Stack {
       autoDeleteObjects: true, // NOT recommended for production code
     })
 
-    new CfnOutput(this, "Bucket", { value: siteBucket.bucketName })
+    new CfnOutput(this, "Bucket", { value: this.siteBucket.bucketName })
 
     // Grant access to cloudfront
-    siteBucket.addToResourcePolicy(
+    this.siteBucket.addToResourcePolicy(
       new aws_iam.PolicyStatement({
         actions: ["s3:GetObject"],
-        resources: [siteBucket.arnForObjects("*")],
+        resources: [this.siteBucket.arnForObjects("*")],
         principals: [
           new aws_iam.CanonicalUserPrincipal(
             cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId
@@ -68,44 +68,6 @@ export class TokyoStack extends Stack {
         ],
       })
     )
-
-    // CloudFront distribution
-    const distribution = new aws_cloudfront.Distribution(this, "SiteDistribution", {
-      certificate: props.certificate,
-      defaultRootObject: "index.html",
-      domainNames: [props.siteDomain],
-      minimumProtocolVersion: aws_cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
-      errorResponses: [
-        {
-          httpStatus: 403,
-          responseHttpStatus: 403,
-          responsePagePath: "/error.html",
-          ttl: Duration.minutes(30),
-        },
-      ],
-      defaultBehavior: {
-        origin: new aws_cloudfront_origins.S3Origin(siteBucket, {
-          originAccessIdentity: cloudfrontOAI,
-        }),
-        compress: true,
-        allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-        viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        edgeLambdas: [
-          {
-            eventType: aws_cloudfront.LambdaEdgeEventType.ORIGIN_RESPONSE,
-            functionVersion: props.originResponseFunction.currentVersion,
-          },
-        ],
-      },
-    })
-
-    new CfnOutput(this, "DistributionId", {
-      value: distribution.distributionId,
-    })
-    // NOTE: Register this domain as CNAME in Cloudflare console
-    new CfnOutput(this, "CloudFrontDomain", {
-      value: distribution.distributionDomainName,
-    })
 
     // Use Cloudflare
     //
@@ -121,9 +83,7 @@ export class TokyoStack extends Stack {
     // Deploy site contents to S3 bucket
     new aws_s3_deployment.BucketDeployment(this, "DeployWithInvalidation", {
       sources: [aws_s3_deployment.Source.asset("../front-app/dist")],
-      destinationBucket: siteBucket,
-      distribution,
-      distributionPaths: ["/*"],
+      destinationBucket: this.siteBucket,
     })
   }
 }
