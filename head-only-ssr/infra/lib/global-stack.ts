@@ -1,4 +1,14 @@
-import { CfnOutput, Stack, StackProps, aws_certificatemanager, aws_route53 } from "aws-cdk-lib"
+import {
+  CfnOutput,
+  Stack,
+  StackProps,
+  aws_certificatemanager,
+  aws_iam,
+  aws_lambda,
+  aws_lambda_nodejs,
+  aws_logs,
+  aws_route53,
+} from "aws-cdk-lib"
 import { Construct } from "constructs"
 
 type GlobalStackProps = {
@@ -11,6 +21,7 @@ type GlobalStackProps = {
 export class GlobalStack extends Stack {
   zone: aws_route53.IHostedZone
   certificate: aws_certificatemanager.ICertificate
+  originResponseFunction: aws_lambda_nodejs.NodejsFunction
 
   constructor(parent: Construct, name: string, props: GlobalStackProps) {
     super(parent, name, props)
@@ -28,5 +39,17 @@ export class GlobalStack extends Stack {
     )
 
     // new CfnOutput(this, "Certificate", { value: this.certificate.certificateArn })
+
+    // Lambda@Edge
+    this.originResponseFunction = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      "OriginResponseFunction",
+      {
+        entry: "../lambda/origin-response/index.ts",
+        handler: "handler",
+        runtime: aws_lambda.Runtime.NODEJS_18_X,
+        logRetention: aws_logs.RetentionDays.ONE_WEEK,
+      }
+    )
   }
 }

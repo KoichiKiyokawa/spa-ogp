@@ -1,16 +1,16 @@
 import {
   CfnOutput,
+  Duration,
   RemovalPolicy,
   Stack,
   StackProps,
+  aws_certificatemanager,
   aws_cloudfront,
+  aws_cloudfront_origins,
   aws_iam,
+  aws_lambda_nodejs,
   aws_route53,
   aws_s3,
-  aws_cloudfront_origins,
-  aws_certificatemanager,
-  Duration,
-  aws_route53_targets,
   aws_s3_deployment,
 } from "aws-cdk-lib"
 import { Construct } from "constructs"
@@ -19,6 +19,7 @@ export type TokyoStackProps = {
   siteDomain: string
   zone: aws_route53.IHostedZone
   certificate: aws_certificatemanager.ICertificate
+  originResponseFunction: aws_lambda_nodejs.NodejsFunction
 } & StackProps
 
 // cf) https://github.com/aws-samples/aws-cdk-examples/blob/master/typescript/static-site/static-site.ts
@@ -89,6 +90,12 @@ export class TokyoStack extends Stack {
         compress: true,
         allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        edgeLambdas: [
+          {
+            eventType: aws_cloudfront.LambdaEdgeEventType.ORIGIN_RESPONSE,
+            functionVersion: props.originResponseFunction.currentVersion,
+          },
+        ],
       },
     })
 

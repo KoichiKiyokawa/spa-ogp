@@ -23,6 +23,7 @@ new TokyoStack(app, "HeadOnlySsrTokyoStack", {
   siteDomain,
   zone: globalStack.zone,
   certificate: globalStack.certificate,
+  originResponseFunction: globalStack.originResponseFunction,
   env: { region: "ap-northeast-1", account },
   crossRegionReferences: true,
 })
