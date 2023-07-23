@@ -47,11 +47,11 @@ export class GlobalStack extends Stack {
     // new CfnOutput(this, "Certificate", { value: this.certificate.certificateArn })
 
     // Lambda@Edge
-    const originResponseFunction = new aws_lambda_nodejs.NodejsFunction(
+    const originRequestFunction = new aws_lambda_nodejs.NodejsFunction(
       this,
-      "OriginResponseFunction",
+      "OriginRequestFunction",
       {
-        entry: "../lambda/origin-response/index.ts",
+        entry: "../lambda/origin-request/index.ts",
         handler: "handler",
         runtime: aws_lambda.Runtime.NODEJS_18_X,
         logRetention: aws_logs.RetentionDays.ONE_WEEK,
@@ -62,6 +62,16 @@ export class GlobalStack extends Stack {
             ),
           },
         },
+      }
+    )
+    const originResponseFunction = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      "OriginResponseFunction",
+      {
+        entry: "../lambda/origin-response/index.ts",
+        handler: "handler",
+        runtime: aws_lambda.Runtime.NODEJS_18_X,
+        logRetention: aws_logs.RetentionDays.ONE_WEEK,
       }
     )
 
@@ -87,6 +97,10 @@ export class GlobalStack extends Stack {
         allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         edgeLambdas: [
+          {
+            eventType: aws_cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
+            functionVersion: originRequestFunction.currentVersion,
+          },
           {
             eventType: aws_cloudfront.LambdaEdgeEventType.ORIGIN_RESPONSE,
             functionVersion: originResponseFunction.currentVersion,
