@@ -15,7 +15,7 @@
     ]
   },
   "context": {
-    "domain": "kiyoshiro.ml",
+    "domain": "kiyoshiro.me",
     "subdomain": "dynamic-rendering",
     "accountId": "877131159332",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
