@@ -1,15 +1,14 @@
 import {
-  CfnOutput,
   Stack,
   StackProps,
   aws_certificatemanager,
-  aws_iam,
   aws_lambda,
   aws_lambda_nodejs,
   aws_logs,
   aws_route53,
 } from "aws-cdk-lib"
 import { Construct } from "constructs"
+import { readFileSync } from "fs"
 
 type GlobalStackProps = {
   /** example.com */
@@ -49,6 +48,13 @@ export class GlobalStack extends Stack {
         handler: "handler",
         runtime: aws_lambda.Runtime.NODEJS_18_X,
         logRetention: aws_logs.RetentionDays.ONE_WEEK,
+        bundling: {
+          define: {
+            __SITE_ROOT_INDEX_HTML_CONTENT: JSON.stringify(
+              readFileSync("../front-app/dist/index.html", "utf-8")
+            ),
+          },
+        },
       }
     )
   }
