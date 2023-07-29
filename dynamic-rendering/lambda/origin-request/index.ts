@@ -1,19 +1,19 @@
-import chromium from "@sparticuz/chromium-min";
-import puppeteer from "puppeteer-core";
-import type { Handler, CloudFrontRequestEvent } from "aws-lambda";
+import chromium from "@sparticuz/chromium-min"
+import puppeteer from "puppeteer-core"
+import type { Handler, CloudFrontRequestEvent } from "aws-lambda"
 
-const dynamicRenderHeaderName = "x-need-dynamic-render";
-const originUrl = "https://dynamic-rendering.kiyoshiro.ml";
+const dynamicRenderHeaderName = "x-need-dynamic-render"
+const originUrl = "https://dynamic-rendering.kiyoshiro.me"
 
 /**
  * 該当するキャッシュがなく、オリジンにリクエストする前に実行される
  */
 export const handler: Handler<CloudFrontRequestEvent> = async (event) => {
-  const request = event.Records[0].cf.request;
-  const headers = request.headers;
+  const request = event.Records[0].cf.request
+  const headers = request.headers
 
   // not crawler
-  if (!headers[dynamicRenderHeaderName]) return request;
+  if (!headers[dynamicRenderHeaderName]) return request
 
   const browser = await puppeteer.launch({
     args: chromium.args,
@@ -25,13 +25,13 @@ export const handler: Handler<CloudFrontRequestEvent> = async (event) => {
     ),
     headless: chromium.headless,
     ignoreHTTPSErrors: true,
-  });
+  })
 
-  const page = await browser.newPage();
-  const targetUrl = `${originUrl}${request.uri}`.replace(/\/index\.html$/, "");
-  await page.goto(targetUrl, { waitUntil: "networkidle0" });
-  const html = await page.content();
-  await browser.close();
+  const page = await browser.newPage()
+  const targetUrl = `${originUrl}${request.uri}`.replace(/\/index\.html$/, "")
+  await page.goto(targetUrl, { waitUntil: "networkidle0" })
+  const html = await page.content()
+  await browser.close()
 
   return {
     status: "200",
@@ -57,5 +57,5 @@ export const handler: Handler<CloudFrontRequestEvent> = async (event) => {
       ],
     },
     body: html,
-  };
-};
+  }
+}
