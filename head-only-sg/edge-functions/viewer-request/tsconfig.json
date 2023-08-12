@@ -8,6 +8,5 @@
     "skipLibCheck": true,
     "outDir": "./dist",
     "removeComments": true
-  },
-  "include": ["src/index.ts"]
+  }
 }
