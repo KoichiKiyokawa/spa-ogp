@@ -1,7 +1,13 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
+    "module": "ESNext",
     "target": "ES5",
-    "strict": true
-  }
+    "lib": ["ESNext"],
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "removeComments": true
+  },
+  "include": ["src/index.ts"]
 }
