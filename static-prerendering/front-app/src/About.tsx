@@ -1,6 +1,6 @@
-import { FC } from "react";
-import { Helmet } from "react-helmet-async";
-import "./App.css";
+import { FC } from "react"
+import { Helmet } from "react-helmet-async"
+import "./App.css"
 
 export const Component: FC = () => {
   return (
@@ -19,7 +19,7 @@ export const Component: FC = () => {
         <div key={i}>hoge{i}</div>
       ))}
     </>
-  );
-};
+  )
+}
 
-Component.displayName = "About";
+Component.displayName = "About"

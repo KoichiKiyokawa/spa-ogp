@@ -1,9 +1,9 @@
-import { useState } from "react"
+import { FC, useState } from "react"
 import reactLogo from "./assets/react.svg"
 import viteLogo from "./assets/vite.svg"
 import "./App.css"
 
-function App() {
+export const Component: FC = () => {
   const [count, setCount] = useState(0)
 
   return (
@@ -28,4 +28,4 @@ function App() {
   )
 }
 
-export default App
+Component.displayName = "App"
