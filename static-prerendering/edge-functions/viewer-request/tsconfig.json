@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ES5",
+    "lib": ["ESNext"],
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "removeComments": true
+  }
+}
