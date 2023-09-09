@@ -41,7 +41,7 @@ export class GlobalStack extends Stack {
     const certificate = aws_certificatemanager.Certificate.fromCertificateArn(
       this,
       "SiteCertificate",
-      "arn:aws:acm:us-east-1:877131159332:certificate/ba35c31d-d07d-411f-b297-2ba3901208c8"
+      "arn:aws:acm:us-east-1:877131159332:certificate/ba35c31d-d07d-411f-b297-2ba3901208c8",
     )
 
     // new CfnOutput(this, "Certificate", { value: this.certificate.certificateArn })
@@ -58,21 +58,11 @@ export class GlobalStack extends Stack {
         bundling: {
           define: {
             __SITE_ROOT_INDEX_HTML_CONTENT: JSON.stringify(
-              readFileSync("../front-app/dist/index.html", "utf-8")
+              readFileSync("../front-app/dist/index.html", "utf-8"),
             ),
           },
         },
-      }
-    )
-    const originResponseFunction = new aws_lambda_nodejs.NodejsFunction(
-      this,
-      "OriginResponseFunction",
-      {
-        entry: "../lambda/origin-response/index.ts",
-        handler: "handler",
-        runtime: aws_lambda.Runtime.NODEJS_18_X,
-        logRetention: aws_logs.RetentionDays.ONE_WEEK,
-      }
+      },
     )
 
     // CloudFront distribution
@@ -100,10 +90,6 @@ export class GlobalStack extends Stack {
           {
             eventType: aws_cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
             functionVersion: originRequestFunction.currentVersion,
-          },
-          {
-            eventType: aws_cloudfront.LambdaEdgeEventType.ORIGIN_RESPONSE,
-            functionVersion: originResponseFunction.currentVersion,
           },
         ],
       },
