@@ -2,6 +2,7 @@ import { FC, useState } from "react";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
+import { Link } from "react-router-dom";
 
 export const Component: FC = () => {
   const [count, setCount] = useState(0);
@@ -20,6 +21,7 @@ export const Component: FC = () => {
         </a>
       </div>
       <h1>Vite + React {jstNow.toLocaleString()}</h1>
+      <Link to="/posts/1">/posts/1</Link>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
