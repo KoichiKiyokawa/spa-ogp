@@ -13,15 +13,16 @@ export const handler: CloudFrontRequestHandler = async (event) => {
   const jstNow = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000)
   const description: string = (() => {
     if (request.uri === "/") return "root page"
-
-    const id = request.uri.match(/\/([\d]+)/)?.[1]
-    if (id) return `page-${id}`
+    else if (new RegExp("/posts/\\d+").test(request.uri)) {
+      const id = request.uri.match(/\/([\d]+)/)?.[1]
+      if (id) return `post ${id} page`
+    }
 
     return "unknown page"
   })()
   const body = __SITE_ROOT_INDEX_HTML_CONTENT.replace(
     "<!-- PLACEHOLDER -->",
-    `<meta name="description" content="${description + " | " + jstNow.toLocaleString()}">`
+    `<meta name="description" content="${description + " | " + jstNow.toLocaleString()}">`,
   )
 
   return {
